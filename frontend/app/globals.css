@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-accord-fill: accord-fill 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes accord-fill {
+    from {
+      width: 0;
+    }
+  }
+}

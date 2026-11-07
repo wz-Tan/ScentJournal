@@ -15,13 +15,16 @@ func NewHandler(service Service) *handler {
 
 func (h *handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	// Create Sign Up Object
-	var userInfo signUp
+	var u user
 
 	// Parsing
-	if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	h.service.signUp(userInfo.Email, userInfo.Password)
+	if err := h.service.signUp(u); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

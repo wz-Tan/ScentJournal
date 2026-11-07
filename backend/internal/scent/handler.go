@@ -9,10 +9,10 @@ import (
 
 // No export, so small letters
 type handler struct {
-	service Service
+	service service
 }
 
-func NewHandler(service Service) *handler {
+func NewHandler(service service) *handler {
 	return &handler{
 		service: service,
 	}
@@ -26,7 +26,7 @@ func (h *handler) ListScents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	scents := h.service.ListScents(offset)
+	scents := h.service.listScents(offset)
 	utils.Write(w, http.StatusOK, scents)
 }
 
@@ -34,7 +34,7 @@ func (h *handler) ListScents(w http.ResponseWriter, r *http.Request) {
 func (h *handler) QueryScents(w http.ResponseWriter, r *http.Request) {
 	scentName := strings.ToLower(r.PathValue("name"))
 
-	scents, err := h.service.QueryScents(scentName)
+	scents, err := h.service.queryScents(scentName)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -48,7 +48,7 @@ func (h *handler) QueryScents(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetScentDetails(w http.ResponseWriter, r *http.Request) {
 	scentID := strings.ToLower(r.PathValue("scentID"))
 
-	scents, err := h.service.GetScentDetails(scentID)
+	scents, err := h.service.getScentDetails(scentID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

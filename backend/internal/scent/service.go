@@ -6,23 +6,23 @@ import (
 	"strings"
 )
 
-type Service interface {
+type service interface {
 	LoadScents() error
-	ListScents(offset int) []Scent
-	QueryScents(name string) ([]Scent, error)
-	GetScentDetails(scentID string) (Scent, error)
+	listScents(offset int) []scent
+	queryScents(name string) ([]scent, error)
+	getScentDetails(scentID string) (scent, error)
 }
 
 type svc struct {
-	scentsList []Scent          // For Iteration / Displays / Queries Cuz Map is Randomised in Go
-	scentsMap  map[string]Scent // For ID Lookup
+	scentsList []scent          // For Iteration / Displays / Queries Cuz Map is Randomised in Go
+	scentsMap  map[string]scent // For ID Lookup
 }
 
-func NewService() Service {
+func NewService() service {
 	return &svc{}
 }
 
-// Init Scents Database
+// Init Scents Database (Specifically capitalised because used in app)
 func (s *svc) LoadScents() error {
 	// Load Scents on Creation
 	scentsList, err := parseJSONL("perfumes.jsonl")
@@ -32,12 +32,12 @@ func (s *svc) LoadScents() error {
 	}
 
 	// Sort Scents List Alphabetically
-	slices.SortFunc(scentsList, func(a, b Scent) int {
+	slices.SortFunc(scentsList, func(a, b scent) int {
 		return cmp.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
 	})
 
 	// Hashmap Init
-	scentsMap := make(map[string]Scent, len(scentsList))
+	scentsMap := make(map[string]scent, len(scentsList))
 
 	for _, scent := range scentsList {
 		scentsMap[scent.ScentID] = scent
@@ -50,24 +50,24 @@ func (s *svc) LoadScents() error {
 }
 
 // List a Specific Number of Scents (Support Lazy Loading)
-func (s *svc) ListScents(offset int) []Scent {
+func (s *svc) listScents(offset int) []scent {
 	// How Much Per Load
-	const BATCH_SIZE	 = 100
+	const BATCH_SIZE = 100
 
 	// Edge Cases
 	// Offset out of bounds
 	if offset > len(s.scentsList) {
-		return []Scent{}
-	} else if (offset + BATCH_SIZE	) > len(s.scentsList) {
+		return []scent{}
+	} else if (offset + BATCH_SIZE) > len(s.scentsList) {
 		// Offset in bounds but BATCH_SIZE	 out of bounds
 		return s.scentsList[offset : len(s.scentsList)-1]
 	}
 
-	return s.scentsList[offset : offset+BATCH_SIZE	]
+	return s.scentsList[offset : offset+BATCH_SIZE]
 }
 
 // Search for Scent
-func (s *svc) QueryScents(name string) ([]Scent, error) {
+func (s *svc) queryScents(name string) ([]scent, error) {
 
 	// Sanity Check for Name Input
 	name = strings.ToLower(strings.TrimSpace(name))
@@ -78,7 +78,7 @@ func (s *svc) QueryScents(name string) ([]Scent, error) {
 
 	const maxResults = 10
 
-	var res []Scent
+	var res []scent
 	var counter int
 
 	// Find Corresponding Name or House
@@ -98,11 +98,11 @@ func (s *svc) QueryScents(name string) ([]Scent, error) {
 }
 
 // Get One Scent Only
-func (s *svc) GetScentDetails(scentID string) (Scent, error) {
-	scent, exists := s.scentsMap[scentID]
+func (s *svc) getScentDetails(scentID string) (scent, error) {
+	selectedScent, exists := s.scentsMap[scentID]
 	if !exists {
-		return Scent{}, ErrorScentNotFound
+		return scent{}, ErrorScentNotFound
 	}
 
-	return scent, nil
+	return selectedScent, nil
 }

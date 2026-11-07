@@ -19,7 +19,7 @@ type rawAccord struct {
 	Strength int    `json:"strength"` // 0..100
 }
 
-type Scent struct {
+type scent struct {
 	ScentID    string         `json:"scentId"`
 	Name       string         `json:"name"`
 	Year       int            `json:"year"`
@@ -36,7 +36,7 @@ var (
 	ErrorParseCSV      = errors.New("Error Parsing CSV")
 )
 
-var sampleScents = map[string]Scent{
+var sampleScents = map[string]scent{
 	"1": {
 		ScentID:    "1",
 		Name:       "Pacific Blue",

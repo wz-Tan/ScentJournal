@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ScentJournal/internal/auth"
 	"ScentJournal/internal/scent"
 	"log"
 	"net/http"
@@ -54,6 +55,12 @@ func (app *application) mount() http.Handler {
 	// Init Services
 	scentService := scent.NewService()
 	scentHandler := scent.NewHandler(scentService)
+
+	authService := auth.NewService()
+	authHandler := auth.NewHandler(authService)
+
+	// Auth
+	r.Post("/auth/signUp", authHandler.SignUp)
 
 	// Load Scents First
 	if err := scentService.LoadScents(); err != nil {

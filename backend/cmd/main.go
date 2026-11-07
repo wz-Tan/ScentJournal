@@ -36,7 +36,7 @@ func main() {
 	h := api.mount()
 
 	if err := api.run(h); err != nil {
-		slog.Error("Error running application", err)
+		slog.Error("Error running application", "err", err)
 		os.Exit(67)
 	}
 }

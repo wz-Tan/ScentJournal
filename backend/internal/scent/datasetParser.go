@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func parseJSONL(fileName string) ([]Scent, error) {
+func parseJSONL(fileName string) ([]scent, error) {
 	file, err := os.Open(filepath.Join("internal", "datasets", fileName))
 	if err != nil {
 		log.Printf("Error opening file: %v", err)
@@ -19,7 +19,7 @@ func parseJSONL(fileName string) ([]Scent, error) {
 
 	dec := json.NewDecoder(file)
 
-	var scents []Scent
+	var scents []scent
 	line := 0
 
 	// While True
@@ -46,7 +46,7 @@ func parseJSONL(fileName string) ([]Scent, error) {
 	return scents, nil
 }
 
-func parseRecord(r rawScent) Scent {
+func parseRecord(r rawScent) scent {
 	year := 0
 	if r.Year != nil {
 		year = *r.Year
@@ -65,7 +65,7 @@ func parseRecord(r rawScent) Scent {
 		accords[a.Name] = a.Strength
 	}
 
-	return Scent{
+	return scent{
 		ScentID:    strconv.Itoa(r.ID),
 		Name:       r.Name,
 		Year:       year,

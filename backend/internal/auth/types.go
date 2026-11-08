@@ -10,5 +10,6 @@ type user struct {
 }
 
 var (
-	ErrorEmailExists = errors.New("An account with this email already exists!")
+	ErrorEmailExists        = errors.New("An account with this email already exists!")
+	ErrorInvalidCredentials = errors.New("Invalid credentials.")
 )

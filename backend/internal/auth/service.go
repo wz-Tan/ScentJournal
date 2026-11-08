@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	signUp(user user) error
+	signIn(user user) error
 }
 
 type svc struct {
@@ -23,7 +24,7 @@ func NewService() Service {
 
 func (s *svc) signUp(u user) error {
 	// Email Already Exists
-	if _, exists := s.users[u.Username]; exists {
+	if _, exists := s.users[u.Email]; exists {
 		return ErrorEmailExists
 	}
 
@@ -39,5 +40,24 @@ func (s *svc) signUp(u user) error {
 
 	// Upload into map
 	s.users[u.Email] = u
+	return nil
+}
+
+func (s *svc) signIn(u user) error {
+	// Email Does Not Exist
+	retrievedUser, exists := s.users[u.Email]
+
+	if !exists {
+		return ErrorInvalidCredentials
+	}
+
+	// Match password
+	err := bcrypt.CompareHashAndPassword([]byte(retrievedUser.Password), []byte(u.Password))
+	if err != nil {
+		return ErrorInvalidCredentials
+	}
+
+	// Todo: Return HTTP Cookie
+
 	return nil
 }

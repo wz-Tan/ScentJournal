@@ -16,4 +16,5 @@ var (
 	ErrorEmailExists        = errors.New("An account with this email already exists!")
 	ErrorInvalidCredentials = errors.New("Invalid credentials.")
 	ErrorCreatingToken      = errors.New("Error creating JWT Token.")
+	ErrorParsingToken       = errors.New("Error parsing JWT Token.")
 )

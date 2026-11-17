@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"ScentJournal/internal/utils"
 	"encoding/json"
 	"net/http"
 )
@@ -49,7 +50,7 @@ func (h *handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	// Create HTTP Cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "ScentJournal_Token",
+		Name:     "ScentJournal_Cookie",
 		Value:    token,
 		HttpOnly: true,
 		Secure:   false, // false on plain http localhost
@@ -61,9 +62,9 @@ func (h *handler) SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) SignOut(w http.ResponseWriter, r *http.Request) {
-	// Just set the cookie with the name ScentJournal_Token to age of -1
+	// Just set the cookie with the name ScentJournal_Cookie to age of -1
 	http.SetCookie(w, &http.Cookie{
-		Name:     "ScentJournal_Token",
+		Name:     "ScentJournal_Cookie",
 		Value:    "",
 		HttpOnly: true,
 		Secure:   false, // false on plain http localhost
@@ -72,4 +73,25 @@ func (h *handler) SignOut(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Identify Your Email from Cookie
+func (h *handler) Me(w http.ResponseWriter, r *http.Request) {
+	// Retrieve Cookie from Request
+	cookie, err := r.Cookie("ScentJournal_Cookie")
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	email, err := h.service.me(cookie)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return User Email to Frontend
+	utils.Write(w, http.StatusOK, email)
 }

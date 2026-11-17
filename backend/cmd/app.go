@@ -63,6 +63,7 @@ func (app *application) mount() http.Handler {
 	r.Post("/auth/signUp", authHandler.SignUp)
 	r.Post("/auth/signIn", authHandler.SignIn)
 	r.Get("/auth/signOut", authHandler.SignOut)
+	r.Get("/auth/me", authHandler.Me)
 
 	// Load Scents First
 	if err := scentService.LoadScents(); err != nil {

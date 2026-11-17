@@ -2,15 +2,19 @@ package auth
 
 import (
 	"log"
+	"net/http"
+	"os"
 
 	"ScentJournal/internal/utils"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	signUp(user user) error
 	signIn(user user) (string, error)
+	me(cookie *http.Cookie) (string, error)
 }
 
 type svc struct {
@@ -68,3 +72,24 @@ func (s *svc) signIn(u user) (string, error) {
 	return token, nil
 }
 
+func (s *svc) me(cookie *http.Cookie) (string, error) {
+	var secret = []byte(os.Getenv("JWT_SECRET"))
+
+	// Get the Token after Verifying Stamp Matches
+	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (any, error) {
+		return secret, nil
+	}, jwt.WithValidMethods([]string{"HS256"}))
+
+	if err != nil || !token.Valid {
+		return "", ErrorParsingToken
+	}
+
+	// Get Value in Token (Claims = Payload)
+	email, err := token.Claims.GetSubject() // reads "sub"
+	if err != nil {
+		return "", err
+	}
+
+	return email, nil
+
+}

@@ -9,7 +9,11 @@ type user struct {
 	Password string `json:"password"`
 }
 
+const JWT_MAX_AGE_MINUTES = 10
+const SECONDS_PER_MINUTE = 60
+
 var (
 	ErrorEmailExists        = errors.New("An account with this email already exists!")
 	ErrorInvalidCredentials = errors.New("Invalid credentials.")
+	ErrorCreatingToken      = errors.New("Error creating JWT Token.")
 )

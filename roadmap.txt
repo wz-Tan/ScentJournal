@@ -1,2 +1,3 @@
 v1 - perfume dataset with lookup (/)
-v2 - user auth system + ability to comment under perfumes
+v2 - user auth system
+v3 - interact with perfumes (upvote, downvote)

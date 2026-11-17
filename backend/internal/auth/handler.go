@@ -39,8 +39,37 @@ func (h *handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.signIn(u); err != nil {
+	// Get JWT Token
+	token, err := h.service.signIn(u)
+
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Create HTTP Cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "ScentJournal_Token",
+		Value:    token,
+		HttpOnly: true,
+		Secure:   false, // false on plain http localhost
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   JWT_MAX_AGE_MINUTES * SECONDS_PER_MINUTE,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) SignOut(w http.ResponseWriter, r *http.Request) {
+	// Just set the cookie with the name ScentJournal_Token to age of -1
+	http.SetCookie(w, &http.Cookie{
+		Name:     "ScentJournal_Token",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   false, // false on plain http localhost
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   -1,
+	})
+	w.WriteHeader(http.StatusNoContent)
 }

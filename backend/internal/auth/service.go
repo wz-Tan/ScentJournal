@@ -3,12 +3,14 @@ package auth
 import (
 	"log"
 
+	"ScentJournal/internal/utils"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	signUp(user user) error
-	signIn(user user) error
+	signIn(user user) (string, error)
 }
 
 type svc struct {
@@ -43,21 +45,25 @@ func (s *svc) signUp(u user) error {
 	return nil
 }
 
-func (s *svc) signIn(u user) error {
+func (s *svc) signIn(u user) (string, error) {
 	// Email Does Not Exist
 	retrievedUser, exists := s.users[u.Email]
 
 	if !exists {
-		return ErrorInvalidCredentials
+		return "", ErrorInvalidCredentials
 	}
 
 	// Match password
 	err := bcrypt.CompareHashAndPassword([]byte(retrievedUser.Password), []byte(u.Password))
 	if err != nil {
-		return ErrorInvalidCredentials
+		return "", ErrorInvalidCredentials
 	}
 
-	// Todo: Return HTTP Cookie
+	// Return Token (use email to sign)
+	token, err := utils.MakeToken(u.Email, JWT_MAX_AGE_MINUTES)
+	if err != nil {
+		return "", ErrorCreatingToken
+	}
 
-	return nil
+	return token, nil
 }

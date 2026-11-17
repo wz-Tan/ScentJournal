@@ -67,3 +67,4 @@ func (s *svc) signIn(u user) (string, error) {
 
 	return token, nil
 }
+

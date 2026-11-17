@@ -1,4 +1,4 @@
 v1 - perfume dataset with lookup (/)
-v2 - user auth system (signIn, signOut, signUp, self-identification in the frontend, show user email on left top)
+v2 - user auth system (signIn, signOut, signUp, self-identification)
 v3 - migrate auth and perfume records into db (auth accounts - use userID instead of email, sessionID, and perfumes)
 v4 - interact with perfumes (upvote, downvote)

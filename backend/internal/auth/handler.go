@@ -44,7 +44,7 @@ func (h *handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	token, err := h.service.signIn(u)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -81,14 +81,14 @@ func (h *handler) Me(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("ScentJournal_Cookie")
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	email, err := h.service.me(cookie)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 

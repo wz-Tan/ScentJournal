@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fleurDeLeah.variable} ${josefinSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Header/>
+        <Header />
         {children}
         <Footer/>
       </body>

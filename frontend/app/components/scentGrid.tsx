@@ -7,6 +7,7 @@ type Props = {
   results: Scent[];
   loading: boolean;
   error: string | null;
+  onRetry: () => void;
   sort: SortKey;
   onSortChange: (sort: SortKey) => void;
 };
@@ -15,6 +16,7 @@ export default function ScentGrid({
   results,
   loading,
   error,
+  onRetry,
   sort,
   onSortChange,
 }: Props) {
@@ -55,9 +57,16 @@ export default function ScentGrid({
           ))}
         </div>
       ) : error ? (
-        <p className="rounded-2xl border border-dashed border-[#CCBEB1] py-16 text-center text-[#664930]">
-          {error}
-        </p>
+        <div className="rounded-2xl border border-dashed border-[#CCBEB1] py-12 text-center text-[#664930]">
+          <p role="alert">{error}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 cursor-pointer rounded-lg border border-[#CCBEB1] px-4 py-2 text-sm hover:border-[#997E67]"
+          >
+            Retry
+          </button>
+        </div>
       ) : results.length > 0 ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
           {results.map((s, i) => (

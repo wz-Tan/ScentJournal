@@ -3,12 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Scent } from "../../types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+import { API_BASE_URL } from "@/lib/api";
 
 async function getScent(id: string): Promise<Scent | null> {
   // Fetch the current scent so detail pages do not show stale data.
-  const res = await fetch(`${API_URL}/scents/id=${encodeURIComponent(id)}`, {
+  const res = await fetch(`${API_BASE_URL}/scents/id=${encodeURIComponent(id)}`, {
     cache: "no-store",
   });
   if (res.status === 404) return null;

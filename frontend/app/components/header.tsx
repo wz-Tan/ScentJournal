@@ -2,10 +2,55 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiUser } from "react-icons/fi";
+import {
+  AUTH_STATE_CHANGED_EVENT,
+  notifyAuthStateChanged,
+  signOut,
+} from "@/lib/auth";
+import { cookieExists } from "@/lib/cookies";
 
 export default function Header() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+    let authRevision = 0;
+
+    function handleAuthStateChanged(event: Event) {
+      authRevision += 1;
+      setIsSignedIn((event as CustomEvent<boolean>).detail);
+    }
+
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    const initialRevision = authRevision;
+    void cookieExists().then((exists) => {
+      if (active && initialRevision === authRevision) setIsSignedIn(exists);
+    });
+
+    return () => {
+      active = false;
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    };
+  }, []);
+
+  async function handleSignOut() {
+    setAccountError(null);
+    try {
+      await signOut();
+      notifyAuthStateChanged(false);
+      setAccountMenuOpen(false);
+      router.push("/");
+    } catch (error) {
+      setAccountError(
+        error instanceof Error ? error.message : "Unable to sign out. Please try again.",
+      );
+    }
+  }
 
   useEffect(() => {
     if (!accountMenuOpen) return;
@@ -23,6 +68,7 @@ export default function Header() {
         <div className="mx-24 flex items-center justify-between">
           <Link
             href="/"
+            onClick={() => setAccountMenuOpen(false)}
             className="inline-flex min-h-11 items-center gap-2.5 text-5xl font-(family-name:--font-fleur-de-leah) tracking-[-0.01em] text-[#111111] hover:text-[#997E67]"
           >
             ScentJournal
@@ -32,7 +78,10 @@ export default function Header() {
               type="button"
               aria-label="Open account menu"
               aria-expanded={accountMenuOpen}
-              onClick={() => setAccountMenuOpen((open) => !open)}
+              onClick={() => {
+                setAccountError(null);
+                setAccountMenuOpen((open) => !open);
+              }}
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-[#997E67] hover:bg-[#FFDBBB]/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#997E67]"
             >
               <FiUser aria-hidden="true" className="h-6 w-6" />
@@ -61,18 +110,37 @@ export default function Header() {
         }`}
       >
         <div className="mx-24 flex flex-col items-end py-3">
-          <button
-            type="button"
-            className="min-h-11 px-4 text-right text-base font-(family-name:--font-josefin-sans) text-[#111111] hover:text-[#997E67]"
-          >
-            Profile
-          </button>
-          <button
-            type="button"
-            className="min-h-11 px-4 text-right text-base font-(family-name:--font-josefin-sans) text-[#111111] hover:text-[#997E67]"
-          >
-            Sign Out
-          </button>
+          {accountError && (
+            <p role="alert" className="max-w-sm px-4 py-2 text-right text-sm text-[#664930]">
+              {accountError}
+            </p>
+          )}
+          {isSignedIn ? (
+            <>
+              <Link
+                href="/profile"
+                onClick={() => setAccountMenuOpen(false)}
+                className="inline-flex min-h-11 items-center cursor-pointer px-4 text-right text-base font-(family-name:--font-josefin-sans) text-[#111111] hover:text-[#997E67]"
+              >
+                Profile
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="min-h-11 cursor-pointer px-4 text-right text-base font-(family-name:--font-josefin-sans) text-[#111111] hover:text-[#997E67]"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/register"
+              onClick={() => setAccountMenuOpen(false)}
+              className="inline-flex min-h-11 items-center cursor-pointer px-4 text-right text-base font-(family-name:--font-josefin-sans) text-[#111111] hover:text-[#997E67]"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </header>

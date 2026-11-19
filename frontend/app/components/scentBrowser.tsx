@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scent } from "../types";
 import SearchBar from "./searchBar";
 import ScentGrid, { type SortKey } from "./scentGrid";
+import { API_BASE_URL } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 const BATCH_SIZE = 100;
 
 export default function ScentBrowser() {
@@ -27,20 +27,28 @@ export default function ScentBrowser() {
     results: Scent[];
     error: string | null;
   }>({ query: "", results: [], error: null });
+  const [searchAttempt, setSearchAttempt] = useState(0);
+  const searchRequestRef = useRef(0);
 
   const trimmedQuery = query.trim();
   const isSearching = trimmedQuery !== "";
   const searchLoading = isSearching && search.query !== trimmedQuery; // derived, no state (loaded on every render)
+
+  const retrySearch = useCallback(() => {
+    setSearch({ query: "", results: [], error: null });
+    setSearchAttempt((attempt) => attempt + 1);
+  }, []);
 
   // Load the next batch of scents
   // useCallback to point to the same function in memory so useEffect won't rerun on rerender
   const loadMore = useCallback(async () => {
     if (fetchingRef.current) return; // Cancels New Fetch if There is an Ongoing Fetch
     fetchingRef.current = true;
+    setError(null);
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/scents/offset=${offsetRef.current}`);
+      const res = await fetch(`${API_BASE_URL}/scents/offset=${offsetRef.current}`);
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data: Scent[] = (await res.json()) ?? [];
 
@@ -97,23 +105,28 @@ export default function ScentBrowser() {
     if (!trimmedQuery) return;
 
     const controller = new AbortController();
+    const requestId = ++searchRequestRef.current;
 
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `${API_URL}/scents/name=${encodeURIComponent(trimmedQuery)}`,
+          `${API_BASE_URL}/scents/name=${encodeURIComponent(trimmedQuery)}`,
           { signal: controller.signal }
         );
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
         const data: Scent[] = (await res.json()) ?? [];
-        setSearch({ query: trimmedQuery, results: data, error: null });
+        if (requestId === searchRequestRef.current) {
+          setSearch({ query: trimmedQuery, results: data, error: null });
+        }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setSearch({
-          query: trimmedQuery,
-          results: [],
-          error: "Couldn't search fragrances. Please try again.",
-        });
+        if (requestId === searchRequestRef.current) {
+          setSearch({
+            query: trimmedQuery,
+            results: [],
+            error: "Couldn't search fragrances. Please try again.",
+          });
+        }
       }
     }, 300);
 
@@ -121,7 +134,7 @@ export default function ScentBrowser() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [trimmedQuery]);
+  }, [trimmedQuery, searchAttempt]);
 
   return (
     <>
@@ -129,10 +142,24 @@ export default function ScentBrowser() {
       <ScentGrid
         results={results}
         loading={isSearching ? searchLoading : loading && scents.length === 0}
-        error={isSearching ? search.error : error}
+        error={isSearching ? search.error : scents.length === 0 ? error : null}
+        onRetry={isSearching ? retrySearch : loadMore}
         sort={sort}
         onSortChange={setSort}
       />
+
+      {!isSearching && error && scents.length > 0 && (
+        <div className="mx-6 -mt-12 mb-16 flex flex-wrap items-center justify-center gap-3 md:mx-24">
+          <p role="alert" className="text-sm text-[#664930]">{error}</p>
+          <button
+            type="button"
+            onClick={loadMore}
+            className="cursor-pointer rounded-lg border border-[#CCBEB1] px-4 py-2 text-sm text-[#664930] hover:border-[#997E67]"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       <div ref={sentinelRef} className="h-10" />
       {!isSearching && loading && scents.length > 0 && (

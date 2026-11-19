@@ -7,6 +7,7 @@ import type { Scent } from "../../types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 async function getScent(id: string): Promise<Scent | null> {
+  // Fetch the current scent so detail pages do not show stale data.
   const res = await fetch(`${API_URL}/scents/id=${encodeURIComponent(id)}`, {
     cache: "no-store",
   });
@@ -41,6 +42,7 @@ async function ScentDetails({ params }: Props) {
   const scent = await getScent(id);
   if (!scent) notFound();
 
+  // Show the strongest accords first.
   const accords = Object.entries(scent.accords ?? {}).sort(([, a], [, b]) => b - a);
   const meta = [scent.gender, scent.year > 0 ? scent.year : null, scent.collection]
     .filter(Boolean)
@@ -97,14 +99,32 @@ async function ScentDetails({ params }: Props) {
                   <span className="w-40 shrink-0 text-base font-light capitalize text-neutral-600">
                     {name}
                   </span>
-                  <div className="h-3 flex-1 rounded-full bg-[#FFDBBB]/60">
-                    <div
-                      className="h-3 animate-accord-fill rounded-full bg-[#664930] motion-reduce:animate-none"
-                      style={{
-                        width: `${Math.min(value, 100)}%`,
-                        animationDelay: `${i * 90}ms`,
-                      }}
-                    />
+                  <div
+                    className="group/scale relative grid h-3 flex-1 grid-cols-[repeat(10,minmax(0,1fr))] gap-1"
+                    role="img"
+                    aria-label={`${name}: ${Math.round(value)} out of 100`}
+                    tabIndex={0}
+                  >
+                    {/* Map the 0–100 accord score to ten segments. */}
+                    {Array.from({ length: 10 }, (_, segment) => {
+                      const filled = segment < Math.round(Math.min(value, 100) / 10);
+                      return (
+                        <span
+                          key={segment}
+                          aria-hidden="true"
+                          className={`min-w-0 rounded-sm ${filled ? "animate-accord-segment bg-[#664930] motion-reduce:animate-none" : "bg-[#FFDBBB]/60"}`}
+                          style={
+                            filled
+                              ? { animationDelay: `${i * 90 + segment * 35}ms` }
+                              : undefined
+                          }
+                        >
+                        </span>
+                      );
+                    })}
+                    <span className="pointer-events-none absolute left-full top-1/2 z-10 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-[#997E67] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/scale:opacity-100 group-focus-visible/scale:opacity-100">
+                      {Math.round(value / 10)} / 10
+                    </span>
                   </div>
                 </li>
               ))}
